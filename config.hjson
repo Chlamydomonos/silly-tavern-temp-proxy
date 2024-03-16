@@ -1,0 +1,9 @@
+{
+    // 代理使用的模型名称
+    // 可用的模型可以从 https://github.com/sourcegraph/cody/blob/main/lib/shared/src/models/dotcom.ts 中找到
+    // 理论上只有Claude 3系列的模型可用
+    model: 'anthropic/claude-3-opus-20240229',
+
+    // 反向代理运行的端口
+    port: 3000
+}
