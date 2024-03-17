@@ -12,11 +12,21 @@ app.use(express.json());
 
 app.get('/v1/models', (_req, res) => {
     console.log('get /models');
-    res.send({ data: [] });
+    res.send({
+        data: [
+            {
+                id: 'claude-3',
+                object: 'model',
+                created: 0,
+                owned_by: '-',
+            },
+        ],
+    });
 });
 
 app.post('/v1/chat/completions', async (req, res) => {
     const { messages, temperature, maxTokens, stream, topP } = req.body;
+    console.log(messages);
     const key = req.headers['authorization']!;
     const match = /^\s*Bearer\s*(sgp_\S*)\s*$/.exec(key);
     if (!match) {

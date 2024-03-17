@@ -104,7 +104,6 @@ export async function callSGP(model: string, key: string, messages: Message[], e
                     const event = match[1];
                     try {
                         const data = JSON.parse(match[2]);
-                        console.log(event, data);
                         if (event == 'content_block_start') {
                             response.write(`data: ${JSON.stringify(buildEventStart(data.content_block.text))}\n\n`);
                         } else if (event == 'content_block_delta') {
