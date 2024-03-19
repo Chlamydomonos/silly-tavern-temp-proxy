@@ -5,7 +5,9 @@ import path from 'path';
 import { callSGP } from './call-sgp';
 
 const rootDir = path.resolve(__dirname, '..');
-const { model, port } = hjson.parse(fs.readFileSync(path.join(rootDir, 'config.hjson')).toString());
+const { model, port, verboseError } = hjson.parse(fs.readFileSync(path.join(rootDir, 'config.hjson')).toString());
+
+globalThis.verboseError = verboseError;
 
 const app = express();
 app.use(express.json());

@@ -84,41 +84,49 @@ export async function callSGP(model: string, key: string, messages: Message[], e
         body.max_tokens = 1000;
     }
 
-    const sgpResponse = await axios.post(url, body, {
-        headers: {
-            Authorization: `Bearer ${sgdKey}`,
-            'X-Sourcegraph-Feature': 'chat_completions',
-        },
-        responseType: 'stream',
-    });
+    try {
+        const sgpResponse = await axios.post(url, body, {
+            headers: {
+                Authorization: `Bearer ${sgdKey}`,
+                'X-Sourcegraph-Feature': 'chat_completions',
+            },
+            responseType: 'stream',
+        });
 
-    const decoder = new TextDecoder('utf-8');
+        const decoder = new TextDecoder('utf-8');
 
-    return new Promise<void>((resolve, _reject) => {
-        sgpResponse.data.on('data', (data: any) => {
-            const text = decoder.decode(data);
-            const events = text.split('event:');
-            for (const eventText of events) {
-                const match = /^\s*(\S+)\s*data:\s*({.*})\s*$/s.exec(eventText);
-                if (match) {
-                    const event = match[1];
-                    try {
-                        const data = JSON.parse(match[2]);
-                        if (event == 'content_block_start') {
-                            response.write(`data: ${JSON.stringify(buildEventStart(data.content_block.text))}\n\n`);
-                        } else if (event == 'content_block_delta') {
-                            response.write(`data: ${JSON.stringify(buildEventDelta(data.delta.text))}\n\n`);
-                        } else if (event == 'content_block_stop') {
-                            response.write(`data: ${JSON.stringify(buildEventStop())}\n\n`);
-                            response.end();
-                            resolve();
+        return new Promise<void>((resolve, _reject) => {
+            sgpResponse.data.on('data', (data: any) => {
+                const text = decoder.decode(data);
+                const events = text.split('event:');
+                for (const eventText of events) {
+                    const match = /^\s*(\S+)\s*data:\s*({.*})\s*$/s.exec(eventText);
+                    if (match) {
+                        const event = match[1];
+                        try {
+                            const data = JSON.parse(match[2]);
+                            if (event == 'content_block_start') {
+                                response.write(`data: ${JSON.stringify(buildEventStart(data.content_block.text))}\n\n`);
+                            } else if (event == 'content_block_delta') {
+                                response.write(`data: ${JSON.stringify(buildEventDelta(data.delta.text))}\n\n`);
+                            } else if (event == 'content_block_stop') {
+                                response.write(`data: ${JSON.stringify(buildEventStop())}\n\n`);
+                                response.end();
+                                resolve();
+                            }
+                        } catch (e) {
+                            console.log(e);
+                            console.log(event, text);
                         }
-                    } catch (e) {
-                        console.log(e);
-                        console.log(event, text);
                     }
                 }
-            }
+            });
         });
-    });
+    } catch (e) {
+        if (verboseError) {
+            console.log(e);
+        }
+        console.log('error calling sgp');
+        response.status(500).send({ error: 'error calling sgp' });
+    }
 }
