@@ -48,5 +48,29 @@ export function parseMessages(messages: Message[]) {
         ],
     });
 
+    if (out[0].role != 'system') {
+        out.unshift({
+            role: 'system',
+            content: [
+                {
+                    type: 'text',
+                    text: '',
+                },
+            ],
+        });
+    }
+
+    let hasBannedStr1 = false;
+    for (const message of out) {
+        if (message.content[0].text.includes('查看上文后分两次回复')) {
+            hasBannedStr1 = true;
+            break;
+        }
+    }
+
+    if (hasBannedStr1) {
+        out[0].content[0].text = 'You are Cody' + out[0].content[0].text;
+    }
+
     return out;
 }
